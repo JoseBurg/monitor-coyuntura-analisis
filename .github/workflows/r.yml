@@ -44,13 +44,11 @@ jobs:
           if [ -f renv.lock ]; then
             Rscript -e 'if (!requireNamespace("renv", quietly=TRUE)) install.packages("renv", repos="https://cran.rstudio.com"); renv::restore()'
           else
-            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl"), repos="https://cran.rstudio.com")'
-      
-      - name: Run functions.R
-        run: Rscript functions.R
+            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl", "utils", "tidyr", "checkmate"), repos="https://cran.rstudio.com")'
       
       - name: Run save_excel.R
-        run: Rscript save_excel.R
+        run: |
+          Rscript "save_excel.R"
         # Si tu script necesita variables de entorno o credenciales, añádelas así:
         # env:
         #   MY_SECRET: ${{ secrets.MY_SECRET }}
