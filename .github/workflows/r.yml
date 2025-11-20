@@ -55,7 +55,7 @@ jobs:
           if [ -f renv.lock ]; then
             Rscript -e 'if (!requireNamespace("renv", quietly=TRUE)) install.packages("renv", repos="https://cran.rstudio.com"); renv::restore()'
           else
-            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl","tidyr","checkmate", "janitor"), repos="https://cran.rstudio.com")'
+            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl","tidyr","checkmate", "janitor", "devtools"), repos="https://cran.rstudio.com")'
             fi
 
       - name: Run save_excel.R (verbose)
