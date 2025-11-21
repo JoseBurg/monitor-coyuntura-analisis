@@ -111,6 +111,74 @@ get_imae <- function (variaciones = TRUE) {
 
 
 
+# Gráficos: ---------------------------------------------------------------
 
+grafica_highcharts <- function(full_datos, variable_seleccionada) {
+  
+  # Validar variable
+  if (!variable_seleccionada %in% names(full_datos)) {
+    stop("La variable seleccionada no existe en el dataframe")
+  }
+  datos <- full_datos |>
+    select(periodo, valor = all_of(variable_seleccionada))
+  
+  # Crear gráfico
+ highcharter::highchart() |>
+   highcharter::hc_add_series(
+      datos,
+      type = "line",
+      highcharter::hcaes(x = periodo, y = valor),
+      name = variable_seleccionada
+    ) |>
+    # highcharter::hc_title(text = paste("Serie:", variable_seleccionada)) |>
+    highcharter::hc_xAxis(
+      title = list(text = "Periodo"),
+      type = "datetime",
+      labels = list(format = "{value:%b %Y}")
+    ) |>
+    highcharter::hc_yAxis(title = list(text = "Nivel"))
+  
+
+}
+
+
+tabla_variaciones_html <- function(data, variable) {
+
+  df <- data |>
+    select(periodo, valor = all_of(variable)) |>
+    arrange(periodo) |>
+    mutate(
+      mes_anterior   = lag(valor, 1),
+      anio_anterior  = lag(valor, 12),
+      var_mensual    = round((valor / mes_anterior - 1) * 100, 2),
+      var_interanual = round((valor / anio_anterior - 1) * 100, 2)
+    )
+  
+  df <- tail(df, 2) |> 
+    janitor::clean_names(case = "title")
+
+  # Crear tabla en HTML con htmltools
+  htmltools::tags$table(
+    class = "table table-striped table-bordered table-sm",
+    
+    # Encabezados
+    htmltools::tags$thead(
+      htmltools::tags$tr(
+        lapply(colnames(df), htmltools::tags$th)
+      )
+    ),
+    
+    # Cuerpo
+    htmltools::tags$tbody(
+      lapply(1:nrow(df), function(i) {
+        htmltools::tags$tr(
+          lapply(df[i, ], function(x) {
+            htmltools::tags$td(ifelse(is.na(x), "", x))
+          })
+        )
+      })
+    )
+  )
+}
 # Instalar databcrd
 # devtools::install_github("https://github.com/Johan-rosa/databcrd")

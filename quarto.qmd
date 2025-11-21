@@ -1,0 +1,124 @@
+---
+format: 
+  html:
+    echo: false
+    warning: false
+    message: false
+editor: visual
+---
+
+```{r}
+library(shiny)
+library(dplyr)
+library(plotly)
+library(scales)
+library(highcharter)
+library(readxl)
+library(DT)
+source("functions.R")
+#---------------- DATOS ----------------#
+
+full_datos <- read_excel("data-coyuntura.xlsx") |>
+  mutate(
+    across(-periodo, ~round(.x, 2)),
+    periodo = as.Date(periodo)
+  ) |>
+  filter(periodo >= "2018-01-01")
+
+```
+
+# Monitor de análisis coyuntura {style="text-align: center;  color: #957c31; font-family: Gotham-Bold"}
+
+------------------------------------------------------------------------
+
+::: panel-tabset
+## IPP Servicio
+
+```{r}
+htmltools::div(
+  class = "card",
+  
+  # Header
+  htmltools::div(
+    class = "card-header",
+    "IPP servicio",
+    size = 12
+  ),
+  
+  # Body
+  htmltools::div(
+    class = "card-body",
+    
+    htmltools::div(
+      class = "card-text",
+      grafica_highcharts(full_datos, "ipp_servicio")
+    )
+  ),
+  
+  # htmltools::br(),
+
+  # Tabla debajo del gráfico
+  tabla_variaciones_html(full_datos, "ipp_servicio")
+)
+```
+
+## IPP Manufactura
+
+```{r}
+htmltools::div(
+  class = "card",
+  
+  # Header
+  htmltools::div(
+    class = "card-header",
+    "IPP Manufactura",
+    size = 12
+  ),
+  
+  # Body
+  htmltools::div(
+    class = "card-body",
+    
+    htmltools::div(
+      class = "card-text",
+      grafica_highcharts(full_datos, "ipp_manufactura")
+    )
+  ),
+  
+  # htmltools::br(),
+
+  # Tabla debajo del gráfico
+  tabla_variaciones_html(full_datos, "ipp_manufactura")
+)
+```
+
+## IMAE
+
+```{r}
+htmltools::div(
+  class = "card",
+  
+  # Header
+  htmltools::div(
+    class = "card-header",
+    "IMAE",
+    size = 12
+  ),
+  
+  # Body
+  htmltools::div(
+    class = "card-body",
+    
+    htmltools::div(
+      class = "card-text",
+      grafica_highcharts(full_datos, "imae")
+    )
+  ),
+  
+  # htmltools::br(),
+
+  # Tabla debajo del gráfico
+  tabla_variaciones_html(full_datos, "imae")
+)
+```
+:::
