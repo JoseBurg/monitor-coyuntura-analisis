@@ -32,6 +32,8 @@ full_datos <- read_excel("data-coyuntura.xlsx") |>
 
 ------------------------------------------------------------------------
 
+`r paste("Actualización:", max(full_datos$periodo))`
+
 ::: panel-tabset
 ## IPP Servicio
 
