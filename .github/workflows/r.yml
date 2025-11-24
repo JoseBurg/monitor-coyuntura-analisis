@@ -1,4 +1,3 @@
-# Coloca este archivo en .github/workflows/save-excel.yml
 name: Ejecutar save_excel.R
 
 on:
@@ -8,8 +7,8 @@ on:
       - 'data/**'
   schedule:
     - cron: '0 14 * * *'
-    - cron: '0 20 * * *' 
-  workflow_dispatch: {}  
+    - cron: '0 20 * * *'
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -34,6 +33,10 @@ jobs:
         with:
           r-version: "latest"
 
+      # --- NUEVO: Instalar Quarto CLI ---
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
       - name: Cache R packages (opcional)
         uses: actions/cache@v4
         with:
@@ -42,32 +45,33 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-r-
 
-      - name: Install system dependencies (si los necesitas)
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev libzip-dev
-          # Si usas rJava, descomenta:
-          # sudo apt-get install -y default-jdk
 
-      - name: Install R packages (renv if available, otherwise CRAN)
+      - name: Install R packages
         run: |
           if [ -f renv.lock ]; then
             Rscript -e 'if (!requireNamespace("renv", quietly=TRUE)) install.packages("renv", repos="https://cran.rstudio.com"); renv::restore()'
           else
-            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl","tidyr","checkmate", "htmltools", "highcharter", "janitor", "devtools"), repos="https://cran.rstudio.com")'
-            fi
+            # Nota: quitamos "quarto" de aquí porque ya instalamos el CLI arriba, 
+            # aunque no hace daño dejar el paquete de R si lo usas dentro de los scripts.
+            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl","tidyr","checkmate", "htmltools", "highcharter", "janitor", "devtools", "rmarkdown", "knitr"), repos="https://cran.rstudio.com")'
+          fi
 
       - name: Run save_excel.R (verbose)
         id: run_script
         run: |
           echo "Working dir: $(pwd)"
           Rscript --vanilla --verbose save_excel.R
-     
-      - name: Run index.qmd (verbose)
+      
+      # --- CORREGIDO: Usar quarto render en lugar de Rscript ---
+      - name: Render index.qmd
         id: run_report
         run: |
           echo "Working dir: $(pwd)"
-          Rscript --vanilla --verbose index.qmd
+          quarto render index.qmd
 
       - name: Prepare git config
         if: always()
@@ -75,24 +79,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Check for data changes
+      - name: Check for changes
         id: git-check
         run: |
-          # Busca cambios en la carpeta data/ (ajusta la ruta si es otra)
-          git add -A
+          # Agregamos también los archivos HTML generados para que se actualice la web
+          git add data/
+          git add *.html
+          # Si tu quarto genera una carpeta _site o docs, descomenta la siguiente línea:
+          # git add _site/ 
+          
           if [ -n "$(git status --porcelain)" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit changed data files (opcional)
+      - name: Commit changed files
         if: steps.git-check.outputs.changed == 'true'
         uses: EndBug/add-and-commit@v9
         with:
           author_name: github-actions[bot]
           author_email: 41898282+github-actions[bot]@users.noreply.github.com
-          message: "chore: actualizar datos vía save_excel.R"
-          add: "data/**"
+          message: "chore: actualizar datos y reporte web"
+          # Asegúrate de incluir aquí lo que quieras guardar
+          add: "." 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
