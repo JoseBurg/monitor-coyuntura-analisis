@@ -5,14 +5,14 @@ on:
   push:
     branches: [ "main" ]
     paths-ignore:
-      - 'data/**'           # evita que commits que sólo cambian data/ vuelvan a disparar el workflow
+      - 'data/**'
   schedule:
-    - cron: '0 14 * * *'     # diariamente a las 06:00 UTC (ajusta si quieres otro horario)
-    - cron: '0 20 * * *'     # diariamente a las 06:00 UTC (ajusta si quieres otro horario)
-  workflow_dispatch: {}     # permite ejecución manual desde la UI
+    - cron: '0 14 * * *'
+    - cron: '0 20 * * *' 
+  workflow_dispatch: {}  
 
 permissions:
-  contents: write           # necesario si quieres commitear cambios de vuelta
+  contents: write
 
 jobs:
   run-save-excel:
@@ -38,7 +38,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/R
-          # si no tienes renv.lock, la clave puede incluir una cadena vacía; es aceptable gracias a restore-keys
           key: ${{ runner.os }}-r-${{ hashFiles('**/renv.lock') }}
           restore-keys: |
             ${{ runner.os }}-r-
