@@ -64,7 +64,7 @@ jobs:
           Rscript --vanilla --verbose save_excel.R
      
       - name: Run index.qmd (verbose)
-        id: run_script
+        id: run_report
         run: |
           echo "Working dir: $(pwd)"
           Rscript --vanilla --verbose index.qmd
