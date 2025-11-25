@@ -145,13 +145,18 @@ grafica_highcharts <- function(full_datos, variable_seleccionada) {
 tabla_variaciones_html <- function(data, variable) {
 
   df <- data |>
-    select(periodo, valor = all_of(variable)) |>
-    arrange(periodo) |>
-    mutate(
+    dplyr::select(periodo, valor = dplyr::all_of(variable)) |>
+    dplyr::arrange(periodo) |>
+    dplyr::mutate(
+      periodo = format(periodo, format = "%b %Y"),
       mes_anterior   = lag(valor, 1),
       anio_anterior  = lag(valor, 12),
-      var_mensual    = round((valor / mes_anterior - 1) * 100, 2),
-      var_interanual = round((valor / anio_anterior - 1) * 100, 2)
+      var_mensual    = (valor / mes_anterior - 1),
+      var_interanual = (valor / anio_anterior - 1),
+      dplyr::across(
+        dplyr::starts_with("var"),
+        ~scales::percent(.x, accuracy = 0.01, suffix = " %")
+      )
     )
   
   df <- tail(df, 2) |> 

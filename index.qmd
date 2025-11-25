@@ -4,7 +4,7 @@ format:
     echo: false
     warning: false
     message: false
-    theme: cosmo
+    theme: spacelab
 editor: visual
 ---
 
@@ -34,7 +34,7 @@ full_datos <- read_excel("data-coyuntura.xlsx") |>
 
 `r paste("Actualización:", max(full_datos$periodo))`
 
-::: panel-tabset
+::: {.panel-tabset .nav-pills}
 ## IPP Servicio
 
 ```{r}
@@ -125,3 +125,5 @@ htmltools::div(
 )
 ```
 :::
+
+# Fuentes
