@@ -12,7 +12,6 @@ editor: visual
 library(shiny)
 library(dplyr)
 
-
 library(highcharter)
 library(readxl)
 
@@ -124,6 +123,24 @@ htmltools::div(
   tabla_variaciones_html(full_datos, "imae")
 )
 ```
+
+### IPC-USA
+```{r}
+
+ipc_usa <- USACPALTT01CTGYM
+
+```
+
 :::
+
+
+
+
+<a href="data-coyuntura.xlsx" download>
+<button class="btn btn-primary">
+<i class="bi bi-download"></i> Descargar Excel
+</button>
+</a>
+
 
 # Fuentes
