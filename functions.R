@@ -185,5 +185,16 @@ tabla_variaciones_html <- function(data, variable) {
     )
   )
 }
+
+
+# Indicadores internacionales USA FRED
+quantmod::getSymbols(
+    Symbols =  "CORESTICKM159SFRBATL",
+    src = "FRED",
+    # from = "2012-01-01",
+    # to = "2025-10-01",
+    format = "xts",
+    periodicity = "monthly"
+)
 # Instalar databcrd
 # devtools::install_github("https://github.com/Johan-rosa/databcrd")
