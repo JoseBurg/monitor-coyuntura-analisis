@@ -57,7 +57,7 @@ jobs:
           else
             # Nota: quitamos "quarto" de aquí porque ya instalamos el CLI arriba, 
             # aunque no hace daño dejar el paquete de R si lo usas dentro de los scripts.
-            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl","tidyr","checkmate", "htmltools", "highcharter", "janitor", "devtools", "rmarkdown", "knitr"), repos="https://cran.rstudio.com")'
+            Rscript -e 'install.packages(c("tidyverse","openxlsx","writexl","tidyr","checkmate", "htmltools", "highcharter", "janitor", "devtools", "rmarkdown", "knitr", "quantmod"), repos="https://cran.rstudio.com")'
           fi
 
       - name: Run save_excel.R (verbose)
