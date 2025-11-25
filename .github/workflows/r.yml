@@ -83,10 +83,10 @@ jobs:
         id: git-check
         run: |
           # Agregamos también los archivos HTML generados para que se actualice la web
-          git add data/
-          # git add *.html
+          # git add data/
+          git add *.html
           # Si tu quarto genera una carpeta _site o docs, descomenta la siguiente línea:
-          # git add _site/ 
+          git add _site/ 
           
           if [ -n "$(git status --porcelain)" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
