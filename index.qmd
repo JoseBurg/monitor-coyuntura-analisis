@@ -127,12 +127,7 @@ htmltools::div(
 ### IPC-USA
 ```{r}
 
-<<<<<<< HEAD
-ipc_usa <- USACPALTT01CTGYM
-=======
 ipc_usa <- CORESTICKM159SFRBATL
->>>>>>> 70e2b4da123fc6cde92d8aaa29a6608ce83901f6
-
 ```
 
 :::
