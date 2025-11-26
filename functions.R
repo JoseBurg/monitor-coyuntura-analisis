@@ -196,6 +196,7 @@ quantmod::getSymbols(
     periodicity = "monthly"
 )
 
+
 data_usa <- c("ipc_usa", "pib_usa")
 
 # Instalar databcrd
