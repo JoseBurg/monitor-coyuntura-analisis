@@ -25,7 +25,7 @@ style_col_names <- openxlsx::createStyle(
     halign = "center",
     valign = "center")
 
-dime_data <- dim(full_datos)
+dim_data <- dim(full_datos)
 
 openxlsx::addStyle(datos_coyuntura, "datos", style = style_col_names, rows = 1, cols = 1:dim_data[2])
 
