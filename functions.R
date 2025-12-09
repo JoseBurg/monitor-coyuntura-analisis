@@ -187,17 +187,17 @@ tabla_variaciones_html <- function(data, variable) {
 }
 
 # Indicadores internacionales USA FRED
-quantmod::getSymbols(
-    Symbols =  "CORESTICKM159SFRBATL",
-    src = "FRED",
+#quantmod::getSymbols(
+#   Symbols =  "CORESTICKM159SFRBATL",
+#    src = "FRED",
     # from = "2012-01-01",
     # to = "2025-10-01",
-    format = "xts",
-    periodicity = "monthly"
-)
+#    format = "xts",
+#    periodicity = "monthly"
+#)
 
 
-data_usa <- c("ipc_usa", "pib_usa")
+#data_usa <- c("ipc_usa", "pib_usa")
 
 # Instalar databcrd
 # devtools::install_github("https://github.com/Johan-rosa/databcrd")
