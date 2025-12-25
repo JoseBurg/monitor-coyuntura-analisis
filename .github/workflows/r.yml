@@ -33,6 +33,18 @@ jobs:
         with:
           r-version: "latest"
 
+          
+      # ---- instalar paque databcrd github
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Install depedencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+             github::Johan-rosa/databcrd
+        
+
       # --- NUEVO: Instalar Quarto CLI ---
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
