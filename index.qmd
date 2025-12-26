@@ -23,8 +23,7 @@ source("functions.R")
 full_datos <- read_excel("data-coyuntura.xlsx") |>
   mutate(
     across(-fecha, ~round(.x, 2)),
-    periodo = as.Date(fecha)
-  ) |>
+    periodo = as.Date(fecha)) |>
   filter(periodo >= "2018-01-01")
 
 ```
