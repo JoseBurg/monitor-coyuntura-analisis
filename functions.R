@@ -120,7 +120,7 @@ grafica_highcharts <- function(full_datos, variable_seleccionada) {
     stop("La variable seleccionada no existe en el dataframe")
   }
   datos <- full_datos |>
-    select(fecha, valor = all_of(variable_seleccionada))
+    select(fecha = periodo, valor = all_of(variable_seleccionada))
   
   # Crear gráfico
  highcharter::highchart() |>
