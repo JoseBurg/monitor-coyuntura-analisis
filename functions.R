@@ -124,7 +124,8 @@ ipc <- list(
 )
 
 
-ipc_desagregacion <- purrr::reduce(ipc, dplyr::left_join)
+ipc_desagregacion <- purrr::reduce(ipc, dplyr::left_join) |>
+    dplyr::filter(fecha >= "2000-01-01")
 
 
 # Gráficos: ------------------------------------------------------------------------
