@@ -6,20 +6,21 @@ source("functions.R")
 
 # Indices ----------------------------------------------------------------------
 indices <- list(
-  #               IPPs ------------------------------
-  datos_ipp <- get_ipp()[,c(1, 4)] |> 
-    dplyr::bind_cols(
-      get_ipp(FALSE)[,4]
-    ),       
-  
-    # IPC -----------------------------------------
+  # IPC -----------------------------------------
   ipc <- databcrd::get_ipc_data(desagregacion = "subyacente") |> 
     dplyr::select(fecha, ipc_subyacente) |> 
       dplyr::left_join(
     databcrd::get_ipc_data(desagregacion = "general") |> 
       dplyr::select(fecha, ipc)
   ),
-    
+  
+  # IPPs ------------------------------
+  datos_ipp <- get_ipp()[,c(1, 4)] |> 
+    dplyr::bind_cols(
+      get_ipp(FALSE)[,4]
+    ),       
+  
+  
   # IMAE ---------------------------------------
     imae <- get_imae() |>
       dplyr::select(fecha, imae = indice_original)
