@@ -110,8 +110,24 @@ get_imae <- function (variaciones = TRUE) {
 }
 
 
+#                                           IPC---------------------------------------------------
+ipc <- list(
+  general = databcrd::get_ipc_data(desagregacion = "general") |> 
+    dplyr::select(fecha, ipc),
+  
+  subyacente = databcrd::get_ipc_data(desagregacion = "subyacente") |> 
+    dplyr::select(fecha, ipc_subyacente),
+  
+  grupos = databcrd::get_ipc_data(desagregacion = "grupos") |> 
+    dplyr::select(-c(dplyr::contains("vm"), year, mes))
+  
+)
 
-# Gráficos: ---------------------------------------------------------------
+
+ipc_desagregacion <- purrr::reduce(ipc, left_join)
+
+
+# Gráficos: ------------------------------------------------------------------------
 
 grafica_highcharts <- function(full_datos, variable_seleccionada) {
   
