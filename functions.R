@@ -124,7 +124,7 @@ ipc <- list(
 )
 
 
-ipc_desagregacion <- purrr::reduce(ipc, left_join)
+ipc_desagregacion <- purrr::reduce(ipc, dplyr::left_join)
 
 
 # Gráficos: ------------------------------------------------------------------------
