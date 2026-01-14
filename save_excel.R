@@ -78,9 +78,10 @@ prestamos_todos <- prestamos_sectores_consolidado |>
 datos_coyuntura <- createWorkbook()
 addWorksheet(datos_coyuntura, "índices")
 addWorksheet(datos_coyuntura, "préstamos")
+addWorksheet(datos_coyuntura, "IPC")
 
 sheets <- list(
-  "índices", "préstamos"
+  "índices", "préstamos", "IPC"
 )
 
 purrr::map(
@@ -91,6 +92,7 @@ purrr::map(
 
 writeData(datos_coyuntura, "índices", indices)
 writeData(datos_coyuntura, "préstamos", prestamos_todos)
+writeData(datos_coyuntura, "IPC", ipc_desagregacion)
 
 saveWorkbook(datos_coyuntura, file = "data-coyuntura.xlsx", overwrite = TRUE)
 
