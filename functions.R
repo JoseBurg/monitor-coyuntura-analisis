@@ -137,7 +137,8 @@ grafica_highcharts <- function(full_datos, variable_seleccionada) {
     stop("La variable seleccionada no existe en el dataframe")
   }
   datos <- full_datos |>
-    select(fecha, valor = all_of(variable_seleccionada))
+    dplyr::select(fecha, valor = all_of(variable_seleccionada)) |> 
+    dplyr::mutate(fecha = as.Date(fecha))
   
   # Crear gráfico
  highcharter::highchart() |>
@@ -154,9 +155,9 @@ grafica_highcharts <- function(full_datos, variable_seleccionada) {
       labels = list(format = "{value:%b %Y}")
     ) |>
     highcharter::hc_yAxis(title = list(text = "Nivel"))
-  
 
 }
+
 
 
 tabla_variaciones_html <- function(data, variable) {
