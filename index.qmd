@@ -131,33 +131,54 @@ htmltools::div(
 ```
 :::
 
-<a href="data-coyuntura.xlsx" download> <button class="btn btn-primary"> <i class="bi bi-download"></i> Descargar Excel </button> </a>
-
 <!-- ## Fuentes -->
 
 <!-- | Indicador | Fuente / Enlace | -->
+
 <!-- |:-----------------------------------|:-----------------------------------| -->
+
 <!-- | **PMI Manufactura** | [S&P Global Market Intelligence](https://www.spglobal.com/marketintelligence/en/mi/research-analysis/manufacturing-pmi-points-to-sus) | -->
+
 <!-- | **Índice de la FAO** | [FAO Food Prices](https://www.fao.org/worldfoodsituation/foodpricesindex/es) | -->
+
 <!-- | **WTI (Petróleo)** | [EIA Outlook](https://www.eia.gov/outlooks/steo/) | -->
+
 <!-- | **Costo de los contenedores** | [Drewry World Container Index](https://www.drewry.co.uk/supply-chain-advisors/supply-chain-expertise/world-container-index-assesse) | -->
+
 <!-- | **Precio del Oro** | [TradingView XAUUSD](https://es.tradingview.com/symbols/XAUUSD/?timeframe=1M) | -->
+
 <!-- | **Precio del Platino** | [TradingEconomics (NYMEX: PLW00)](https://es.tradingeconomics.com/commodity/platinum) | -->
+
 <!-- | **Precio de la Plata** | *Pendiente de enlace* | -->
+
 <!-- | **Empleos (ADP)** | [ADP Employment Report](https://adpemploymentreport.com/) | -->
+
 <!-- | **PMI Servicios ISM** | [ISM World](https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/services/octobe) | -->
+
 <!-- | **PMI Servicios ISM EEUU** | [Trading Economics](https://tradingeconomics.com/united-states/non-manufacturing-pmi) | -->
+
 <!-- | **Precio de los servicios ISM** | [Trading Economics](https://tradingeconomics.com/united-states/ism-non-manufacturing-prices) | -->
+
 <!-- | **Precios manufactura ISM** | [Investing.com](https://www.investing.com/economic-calendar/ism-manufacturing-prices-174) | -->
+
 <!-- | **NFIB Small Business Optimism** | [Trading Economics](https://tradingeconomics.com/united-states/nfib-business-optimism-index) | -->
+
 <!-- | **Confianza consumidores Michigan** | [Trading Economics](https://tradingeconomics.com/united-states/consumer-confidence) | -->
+
 <!-- | **Expectativas futuras** | [Michigan Consumer Exp.](https://tradingeconomics.com/united-states/michigan-consumer-expectations) | -->
+
 <!-- | **Expectativas de inflación (1 año)** | [Michigan Inflation Exp.](https://tradingeconomics.com/united-states/michigan-inflation-expectations) | -->
+
 <!-- | **Inflation Expectations FED** | [Trading Economics](https://tradingeconomics.com/united-states/inflation-expectations) | -->
+
 <!-- | **FED Watch Tool** | [CME Group](https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html) | -->
+
 <!-- | **PMI Servicios Gral** | [S&P Global](https://www.pmi.spglobal.com/Public/Home/PressRelease/6999960b1c9f4244ac58c7ccc02aac11) | -->
+
 <!-- | **Volatilidad Oro (GVZCLS)** | [FRED St. Louis](https://fred.stlouisfed.org/series/GVZCLSPMI) | -->
+
 <!-- | **PMI Servicios EEUU** | [S&P Global](https://www.pmi.spglobal.com/Public/Home/PressRelease/2e4923c8117a4397a6d6a907dd3e6df2) | -->
+
 <!-- | **FED Inflation Expectations** | [NY Fed Research](https://www.newyorkfed.org/newsevents/news/research/2025/20251107) | -->
 
 <a href="data-coyuntura.xlsx" download> <button class="btn btn-primary"> <i class="bi bi-download"></i> Descargar datos </button> </a>

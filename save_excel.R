@@ -2,6 +2,9 @@ library(openxlsx)
 library(dplyr)
 
 source("functions.R")
+source("funciones/sipen.R", encoding = "UTF-8")
+source("funciones/tarjetas.R", encoding = "UTF-8")
+
 
 
 # Indices ----------------------------------------------------------------------
@@ -40,6 +43,26 @@ indices <- purrr::reduce(indices, left_join) |>
 )
 
 
+#                                           IPC---------------------------------------------------
+ipc <- list(
+  general = databcrd::get_ipc_data(desagregacion = "general") |> 
+    dplyr::select(fecha, ipc),
+  
+  subyacente = databcrd::get_ipc_data(desagregacion = "subyacente") |> 
+    dplyr::select(fecha, ipc_subyacente),
+  
+  grupos = databcrd::get_ipc_data(desagregacion = "grupos") |> 
+    dplyr::select(-c(dplyr::contains("vm"), year, mes))
+  
+)
+
+
+ipc_desagregacion <- purrr::reduce(ipc, dplyr::left_join) |>
+  dplyr::filter(fecha >= "2000-01-01")
+
+
+# Préstamos -----------------------------------------------------
+
 prestamos <- databcrd::get_prestamos_osd() 
 
 
@@ -69,24 +92,33 @@ prestamos_todos <- prestamos_sectores_consolidado |>
   dplyr::left_join(prestamos_variaciones)
 
 
+
+# Datos de sipen ----------------------------------------------------------
+sipen <- get_datos_sipen("salario") |> 
+  dplyr::left_join(
+    get_datos_sipen("cotizantes"), 
+    by = c("mes" = "corte")
+  ) |> dplyr::mutate(
+    mes = as.Date(as.numeric(mes), origin = "1899-12-30")
+  )
+
+
+# Guardando datos en excel ------------------------------------------------
 datos_coyuntura <- createWorkbook()
-addWorksheet(datos_coyuntura, "índices")
-addWorksheet(datos_coyuntura, "préstamos")
-addWorksheet(datos_coyuntura, "IPC")
-
-sheets <- list(
-  "índices", "préstamos", "IPC"
+datos <- list(
+  "índices"   = indices,
+  "préstamos" = prestamos_todos,
+  "IPC"       = ipc_desagregacion,
+  "sipen"     = sipen, 
+  "transacciones" = get_transacciones_tc()
 )
 
-purrr::map(
-  sheets,
-  \(x) openxlsx::freezePane(datos_coyuntura, x,  firstRow = TRUE, firstCol = TRUE)
-)
+purrr::iwalk(datos, \(df, nombre) {
+  addWorksheet(datos_coyuntura, nombre)
+  freezePane(datos_coyuntura, nombre, firstRow = TRUE, firstCol = TRUE)
+  writeData(datos_coyuntura, nombre, df)
+})
 
-
-writeData(datos_coyuntura, "índices", indices)
-writeData(datos_coyuntura, "préstamos", prestamos_todos)
-writeData(datos_coyuntura, "IPC", ipc_desagregacion)
 
 saveWorkbook(datos_coyuntura, file = "data-coyuntura.xlsx", overwrite = TRUE)
 

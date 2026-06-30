@@ -1,49 +1,3 @@
-
-# Get-IPP -----------------------------------------------------------------
-
-#' Descargar y procesar el Índice de Precios del Productor (IPP) desde la ONE
-#'
-#' Esta función automatiza la descarga y lectura del archivo más reciente del 
-#' Índice de Precios del Productor (IPP) publicado por la Oficina Nacional de 
-#' Estadística (ONE) de República Dominicana. Permite elegir entre el IPP de 
-#' industrias manufactureras y el IPP de servicios. 
-#'
-#' La función:
-#' - Identifica en la página oficial el enlace del archivo Excel más reciente.
-#' - Descarga temporalmente el archivo.
-#' - Lee y limpia los datos aplicando los nombres de columnas correspondientes.
-#' - Construye una variable de fecha ("fecha") desde 2014-01 en adelante.
-#'
-#' @param manufactura Logical. Si `TRUE` (por defecto), descarga el IPP de 
-#' industrias manufactureras. Si `FALSE`, descarga el IPP de servicios.
-#'
-#' @return Un data frame con las siguientes columnas:
-#' \describe{
-#'   \item{fecha}{Fecha en formato `Date` correspondiente a cada observación.}
-#'   \item{year}{Año reportado en el archivo.}
-#'   \item{mes}{Mes reportado (texto).}
-#'   \item{ipp_manufactura / ipp_servicio}{Índice de Precios del Productor.}
-#'   \item{vm}{Variación mensual.}
-#'   \item{vcorrid}{Variación acumulada.}
-#'   \item{vi}{Variación interanual.}
-#' }
-#'
-#' @details
-#' La función usa `rvest` para extraer dinámicamente el enlace más reciente según 
-#' si se requiere el IPP de manufactura o servicios. Posteriormente utiliza 
-#' `readxl` para leer el archivo y `dplyr`/`tidyr` para limpiar los datos.
-#'
-#' @examples
-#' \dontrun{
-#' # Obtener IPP manufactura
-#' ipp_m <- get_ipp()
-#'
-#' # Obtener IPP servicios
-#' ipp_s <- get_ipp(manufactura = FALSE)
-#' }
-#'
-#' @export
-
 get_ipp <- function(manufactura = TRUE){
   
   link <- "https://www.one.gob.do/datos-y-estadisticas/temas/estadisticas-economicas/precios/ipp"
@@ -109,23 +63,6 @@ get_imae <- function (variaciones = TRUE) {
     imae
 }
 
-
-#                                           IPC---------------------------------------------------
-ipc <- list(
-  general = databcrd::get_ipc_data(desagregacion = "general") |> 
-    dplyr::select(fecha, ipc),
-  
-  subyacente = databcrd::get_ipc_data(desagregacion = "subyacente") |> 
-    dplyr::select(fecha, ipc_subyacente),
-  
-  grupos = databcrd::get_ipc_data(desagregacion = "grupos") |> 
-    dplyr::select(-c(dplyr::contains("vm"), year, mes))
-  
-)
-
-
-ipc_desagregacion <- purrr::reduce(ipc, dplyr::left_join) |>
-    dplyr::filter(fecha >= "2000-01-01")
 
 
 # Gráficos: ------------------------------------------------------------------------
