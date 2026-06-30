@@ -40,7 +40,8 @@ indices <- purrr::reduce(indices, left_join) |>
 )
 
 
-prestamos <- databcrd::get_prestamos_osd()
+prestamos <- databcrd::get_prestamos_osd() 
+
 
 prestamos_sectores_consolidado <- prestamos |> 
   tidyr::pivot_wider(
@@ -49,7 +50,8 @@ prestamos_sectores_consolidado <- prestamos |>
     values_from = consolidado
   )
 
-prestamos_incidencia_total <- prestamos |>  
+prestamos_variaciones <- prestamos |>  
+  filter(!stringr::str_detect(sectores, "TARJETAS DE CRÉDITO|OTROS PRÉSTAMOS DE CONSUMO")) |> 
   summarise(
     across(
       c(mn, me, consolidado),
@@ -61,19 +63,10 @@ prestamos_incidencia_total <- prestamos |>
      list(
        vm = ~((.x/lag(.x))-1) * 100,
        vi = ~((.x/lag(.x, n = 12))-1) * 100
-     ))) |> 
-  rowwise() |> 
-  mutate(
-    across(
-      c(mn, me),
-      list(
-        incidencia = ~.x/consolidado
-      )
-    )
-  )
+     )))
 
 prestamos_todos <- prestamos_sectores_consolidado |> 
-  dplyr::left_join(prestamos_incidencia_total)
+  dplyr::left_join(prestamos_variaciones)
 
 
 datos_coyuntura <- createWorkbook()
