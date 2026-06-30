@@ -136,7 +136,7 @@ htmltools::div(
 ## Fuentes
 
 | Indicador | Fuente / Enlace |
-|:-----------------------------|:-----------------------------------------|
+|:---|:---|
 | **PMI Manufactura** | [S&P Global Market Intelligence](https://www.spglobal.com/marketintelligence/en/mi/research-analysis/manufacturing-pmi-points-to-sus) |
 | **Índice de la FAO** | [FAO Food Prices](https://www.fao.org/worldfoodsituation/foodpricesindex/es) |
 | **WTI (Petróleo)** | [EIA Outlook](https://www.eia.gov/outlooks/steo/) |
