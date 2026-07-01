@@ -67,43 +67,42 @@ get_imae <- function (variaciones = TRUE) {
 
 # Gráficos: ------------------------------------------------------------------------
 
-grafica_highcharts <- function(full_datos, variable_seleccionada) {
-  
-  # Validar variable
-  if (!variable_seleccionada %in% names(full_datos)) {
-    stop("La variable seleccionada no existe en el dataframe")
-  }
-  datos <- full_datos |>
-    dplyr::select(fecha, valor = all_of(variable_seleccionada)) |> 
-    dplyr::mutate(fecha = as.Date(fecha))
-  
-  # Crear gráfico
- highcharter::highchart() |>
-   highcharter::hc_add_series(
-      datos,
-      type = "line",
-      highcharter::hcaes(x = fecha, y = valor),
-      name = variable_seleccionada
-    ) |>
-    # highcharter::hc_title(text = paste("Serie:", variable_seleccionada)) |>
-    highcharter::hc_xAxis(
-      title = list(text = "fecha"),
-      type = "datetime",
-      labels = list(format = "{value:%b %Y}")
-    ) |>
-    highcharter::hc_yAxis(title = list(text = "Nivel"))
-
-}
+# grafica_highcharts <- function(full_datos, variable_seleccionada) {
+#   
+#   # Validar variable
+#   if (!variable_seleccionada %in% names(full_datos)) {
+#     stop("La variable seleccionada no existe en el dataframe")
+#   }
+#   datos <- full_datos |>
+#     dplyr::select(periodo, valor = all_of(variable_seleccionada))
+#   
+#   # Crear gráfico
+#  highcharter::highchart() |>
+#    highcharter::hc_add_series(
+#       datos,
+#       type = "line",
+#       highcharter::hcaes(x = periodo, y = valor),
+#       name = variable_seleccionada
+#     ) |>
+#     # highcharter::hc_title(text = paste("Serie:", variable_seleccionada)) |>
+#     highcharter::hc_xAxis(
+#       title = list(text = "fecha"),
+#       type = "datetime",
+#       labels = list(format = "{value:%b %Y}")
+#     ) |>
+#     highcharter::hc_yAxis(title = list(text = "Nivel"))
+# 
+# }
 
 
 
 tabla_variaciones_html <- function(data, variable) {
 
   df <- data |>
-    dplyr::select(fecha, valor = dplyr::all_of(variable)) |>
-    dplyr::arrange(fecha) |>
+    dplyr::select(periodo, valor = dplyr::all_of(variable)) |>
+    dplyr::arrange(periodo) |>
     dplyr::mutate(
-      fecha = format(fecha, format = "%b %Y"),
+      periodo = format(periodo, format = "%b %Y"),
       mes_anterior   = lag(valor, 1),
       anio_anterior  = lag(valor, 12),
       var_mensual    = (valor / mes_anterior - 1),
@@ -140,6 +139,98 @@ tabla_variaciones_html <- function(data, variable) {
     )
   )
 }
+
+
+
+
+# Preparación de datos  ---------------------------------------------------
+# Reporte::
+
+full_datos <- read_excel("data-coyuntura.xlsx") |>
+  mutate(
+    across(-fecha, ~round(.x, 2)),
+    periodo = as.Date(fecha)) |>
+  filter(periodo >= "2018-01-01") |> 
+  select(-fecha, -matches("_(vi|vm)$")) 
+
+datos_long <- full_datos |> 
+  tidyr::pivot_longer(
+    cols = -periodo, 
+    names_to = "variables",
+    values_to = "indice"
+  ) |> 
+  group_by(variables) |> 
+  mutate(
+    vm = (indice/lag(indice)-1) * 100,
+    vi = (indice/lag(indice, 12)-1) * 100, 
+    across(c(vm, vi),
+           ~round(., digits = 2)
+           )
+  )
+
+
+
+# Funcion para graficas de lines en estilo long ---------------------------
+
+plot_line <- function(datos,
+                      medida = "indice",
+                      visibles = "ipc",
+                      type = "stock") {
+  
+  # Validar la medida
+  if (!medida %in% c("indice", "vm", "vi")) {
+    stop("La medida debe ser 'indice', 'vm' o 'vi'.")
+  }
+  
+  hc <- highcharter::highchart(type = type)
+  
+  variables <- unique(datos$variables)
+  
+  for (v in variables) {
+    
+    datos_var <- datos |>
+      dplyr::filter(variables == v)
+    
+    hc <- hc |>
+      highcharter::hc_add_series(
+        datos_var,
+        type = "spline",
+        highcharter::hcaes(
+          x = periodo,
+          y = .data[[medida]]
+        ),
+        name = v,
+        visible = v %in% visibles
+      )
+  }
+  
+  hc <- hc |>
+    highcharter::hc_xAxis(type = "datetime") |>
+    highcharter::hc_yAxis(opposite = FALSE) |> 
+    highcharter::hc_tooltip(shared = TRUE) |>
+    highcharter::hc_legend(enabled = TRUE)
+  
+  # Configuración exclusiva para Highstock
+  if (type == "stock") {
+    
+    hc <- hc |>
+      highcharter::hc_rangeSelector(enabled = TRUE,
+                                    buttons = list(),   
+                                    inputEnabled = TRUE) |>
+      highcharter::hc_scrollbar(enabled = FALSE) |> 
+      highcharter::hc_navigator(
+        enabled = FALSE,
+        height = 30
+      )
+    
+  }
+  
+  hc
+}
+
+
+
+
 
 # Indicadores internacionales USA FRED
 #quantmod::getSymbols(

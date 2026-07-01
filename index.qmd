@@ -7,7 +7,8 @@ format:
     message: false
     theme: spacelab
     toc: true
-editor: visual
+    toc-title: Contenido 
+    editor: visual
 ---
 
 ```{r}
@@ -18,111 +19,36 @@ library(highcharter)
 library(readxl)
 
 source("functions.R")
-#---------------- DATOS ----------------#
-
-full_datos <- read_excel("data-coyuntura.xlsx") |>
-  mutate(
-    across(-fecha, ~round(.x, 2)),
-    periodo = as.Date(fecha)) |>
-  filter(periodo >= "2018-01-01")
-
 ```
 
 # Monitor de análisis coyuntura
 
 `r paste("Actualización:", max(full_datos$periodo))`
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 47ca175... Rediseño de gráficos y ajustes de base de datos presentados.
 ## Actividad y precios
 
 ::: {.panel-tabset .nav-pills}
-### IPP Servicio
+### Índices
 
 ```{r}
-htmltools::div(
-  class = "card",
-  
-  # Header
-  htmltools::div(
-    class = "card-header",
-    "IPP servicio",
-    size = 12
-  ),
-  
-  # Body
-  htmltools::div(
-    class = "card-body",
-    
-    htmltools::div(
-      class = "card-text",
-      grafica_highcharts(full_datos, "ipp_servicio")
-    )
-  ),
-  
-  # htmltools::br(),
-
-  # Tabla debajo del gráfico
-  tabla_variaciones_html(full_datos, "ipp_servicio")
-)
+plot_line(datos_long, "indice", visibles = c("ipc", "ipc_subyacente"))
 ```
 
-### IPP Manufactura
+### Variaciones mensuales
 
 ```{r}
-htmltools::div(
-  class = "card",
-  
-  # Header
-  htmltools::div(
-    class = "card-header",
-    "IPP Manufactura",
-    size = 12
-  ),
-  
-  # Body
-  htmltools::div(
-    class = "card-body",
-    
-    htmltools::div(
-      class = "card-text",
-      grafica_highcharts(full_datos, "ipp_manufactura")
-    )
-  ),
-  
-  # htmltools::br(),
-
-  # Tabla debajo del gráfico
-  tabla_variaciones_html(full_datos, "ipp_manufactura")
-)
+plot_line(datos_long, "vm", visibles = c("ipc", "ipc_subyacente"))
 ```
 
-### IMAE
+### Variaciones interanuales
 
 ```{r}
-htmltools::div(
-  class = "card",
-  
-  # Header
-  htmltools::div(
-    class = "card-header",
-    "IMAE",
-    size = 12
-  ),
-  
-  # Body
-  htmltools::div(
-    class = "card-body",
-    
-    htmltools::div(
-      class = "card-text",
-      grafica_highcharts(full_datos, "imae")
-    )
-  ),
-  
-  # htmltools::br(),
-
-  # Tabla debajo del gráfico
-  tabla_variaciones_html(full_datos, "imae")
-)
+plot_line(datos_long, "vi", visibles = c("ipc", "ipc_subyacente"))
 ```
 
 ```{r}
@@ -183,6 +109,6 @@ htmltools::div(
 
 <a href="data-coyuntura.xlsx" download> <button class="btn btn-primary"> <i class="bi bi-download"></i> Descargar datos </button> </a>
 
-# Fuentes
+<!-- # Fuentes -->
 
-# Blog de noticias
+<!-- # Blog de noticias -->
