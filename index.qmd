@@ -25,11 +25,6 @@ source("functions.R")
 
 `r paste("Actualización:", max(full_datos$periodo))`
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 47ca175... Rediseño de gráficos y ajustes de base de datos presentados.
 ## Actividad y precios
 
 ::: {.panel-tabset .nav-pills}
