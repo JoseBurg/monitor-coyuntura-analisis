@@ -32,7 +32,7 @@ full_datos <- read_excel("data-coyuntura.xlsx") |>
 
 `r paste("Actualización:", max(full_datos$periodo))`
 
-## Entorno Nacional
+## Actividad y precios
 
 ::: {.panel-tabset .nav-pills}
 ### IPP Servicio
