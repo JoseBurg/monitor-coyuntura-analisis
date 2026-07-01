@@ -228,6 +228,50 @@ plot_line <- function(datos,
   hc
 }
 
+# preparar_prestamos <- function(data){
+#   prestamos |> 
+#     # dplyr::group_by(fecha) |> 
+#     dplyr::summarise(
+#       dplyr::across(
+#         c(mn, me, consolidado),
+#         sum), .by = fecha) |> 
+#     tidyr::pivot_longer(
+#       cols = -fecha, 
+#       names_to = "variables",
+#       values_to = "montos") 
+# }
+# 
+# preparar_prestamos(prestamos)
+# 
+# 
+# 
+# # 3. Función para construir el gráfico apilado dado un tipo de moneda
+# grafico_apilado <- function(datos, variable = c("mn", "me", "consolidado"),
+#                             titulo = NULL) {
+#   variable <- match.arg(variable)
+#   
+#   datos_agg <- preparar_datos(datos, variable)
+#   
+#   titulo_default <- switch(variable,
+#                            mn          = "Préstamos en Moneda Nacional por Sector",
+#                            me          = "Préstamos en Moneda Extranjera por Sector",
+#                            consolidado = "Préstamos Consolidados por Sector"
+#   )
+#   
+#   highcharter::hchart(
+#     datos_agg,
+#     "column",
+#     highcharter::hcaes(x = fecha, y = valor)
+#   ) |>
+#     highcharter::hc_chart(zoomType = "x") |>
+#     highcharter::hc_plotOptions(column = list(stacking = "normal")) |>
+#     highcharter::hc_title(text = titulo %||% titulo_default) |>
+#     highcharter::hc_xAxis(title = list(text = "Año")) |>
+#     highcharter::hc_yAxis(title = list(text = "Millones de RD$")) |>
+#     highcharter::hc_tooltip(shared = FALSE, pointFormat = "<b>{series.name}</b>: {point.y:,.1f}") |>
+#     highcharter::hc_legend(enabled = FALSE)
+# }
+# 
 
 
 

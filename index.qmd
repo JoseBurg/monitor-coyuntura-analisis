@@ -46,11 +46,25 @@ plot_line(datos_long, "vm", visibles = c("ipc", "ipc_subyacente"))
 plot_line(datos_long, "vi", visibles = c("ipc", "ipc_subyacente"))
 ```
 
+:::
+
+<br>
+
+## Préstamos por Sectores OSD
+
+
+### Incidencias 
+
+```{r}
+source("funciones/graficos_prestamos.R")
+grafico_incidencias(datos_inc, titulo = " ")
+```
+
+
 ```{r}
 
 # ipc_usa <- CORESTICKM159SFRBATL
 ```
-:::
 
 <!-- ## Fuentes -->
 
