@@ -40,7 +40,7 @@ plot_line(datos_long, "indice", visibles = c("ipc", "ipc_subyacente"))
 plot_line(datos_long, "vm", visibles = c("ipc", "ipc_subyacente"))
 ```
 
-### Variaciones interanuales
+### Variaciones interanuales {.active}
 
 ```{r}
 plot_line(datos_long, "vi", visibles = c("ipc", "ipc_subyacente"))
