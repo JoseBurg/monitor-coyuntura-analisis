@@ -3,6 +3,7 @@ library(dplyr)
 
 source("functions.R")
 source("funciones/sipen.R", encoding = "UTF-8")
+source("funciones/aduanas.R", encoding = "UTF-8")
 source("funciones/tarjetas.R", encoding = "UTF-8")
 
 
@@ -103,6 +104,7 @@ sipen <- get_datos_sipen("salario") |>
   )
 
 
+
 # Guardando datos en excel ------------------------------------------------
 datos_coyuntura <- createWorkbook()
 datos <- list(
@@ -110,7 +112,11 @@ datos <- list(
   "préstamos" = prestamos_todos,
   "IPC"       = ipc_desagregacion,
   "sipen"     = sipen, 
-  "transacciones" = get_transacciones_tc()
+  "transacciones" = get_transacciones_tc(),
+  "importacion_regimen" = get_data_dga(categoria = "importacion", by = "regimen"),
+  "exportacion_regimen" = get_data_dga(categoria = "exportacion", by = "regimen"),
+  "exportacion_destino" = get_data_dga(categoria = "exportacion", by = "destino"),
+  "importacion_destino" = get_data_dga(categoria = "importacion", by = "destino")
 )
 
 purrr::iwalk(datos, \(df, nombre) {

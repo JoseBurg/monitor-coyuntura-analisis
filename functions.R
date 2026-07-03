@@ -146,12 +146,12 @@ tabla_variaciones_html <- function(data, variable) {
 # Preparación de datos  ---------------------------------------------------
 # Reporte::
 
-full_datos <- read_excel("data-coyuntura.xlsx") |>
-  mutate(
-    across(-fecha, ~round(.x, 2)),
+full_datos <- readxl::read_excel("data-coyuntura.xlsx") |>
+  dplyr::mutate(
+    dplyr::across(-fecha, ~round(.x, 2)),
     periodo = as.Date(fecha)) |>
-  filter(periodo >= "2018-01-01") |> 
-  select(-fecha, -matches("_(vi|vm)$")) 
+  dplyr::filter(periodo >= "2018-01-01") |> 
+  dplyr::select(-fecha, -matches("_(vi|vm)$")) 
 
 datos_long <- full_datos |> 
   tidyr::pivot_longer(
@@ -159,11 +159,11 @@ datos_long <- full_datos |>
     names_to = "variables",
     values_to = "indice"
   ) |> 
-  group_by(variables) |> 
-  mutate(
+  dplyr::group_by(variables) |> 
+  dplyr::mutate(
     vm = (indice/lag(indice)-1) * 100,
     vi = (indice/lag(indice, 12)-1) * 100, 
-    across(c(vm, vi),
+    dplyr::across(c(vm, vi),
            ~round(., digits = 2)
            )
   )
