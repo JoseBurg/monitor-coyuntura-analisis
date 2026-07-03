@@ -1,0 +1,629 @@
+---
+title: "Descarga de datos de Coyuntura"
+output: html_document
+date: "2025-11-28"
+---
+
+#============================================
+#  Base de datos de actividad internacional
+#============================================
+
+```{r, warning=FALSE, message=FALSE}
+
+#===============
+# == Librerias
+#===============
+library(curl)
+library(dplyr)
+library(openxlsx)
+library(readxl)
+library(writexl)
+library(lubridate)
+library(rsdmx)
+library(zoo)
+
+options(timeout = 120)
+
+#===============================================
+# Estableciendo los requerimientos de la proxy
+#===============================================
+
+# -- Para abrir el environ de R donde esta guardado el usuario y la contraseña
+#file.edit("~/.Renviron")
+
+# -- Llamando el usuario y la contraseña
+user <- Sys.getenv("W_USER")
+pass <- Sys.getenv("W_PASS")
+
+# -- Estableciendo los comandos de la proxy
+h <- new_handle()
+handle_setopt(
+  h,
+  proxy        = "http://192.168.16.185:8080",
+  proxyuserpwd = paste0(user, ":", pass),
+  timeout      = 120,        # segundos máximos por descarga
+  connecttimeout = 30,       # segundos para establecer conexión
+  low_speed_limit = 1000,    # bytes/seg mínimos
+  low_speed_time  = 30       # si va más lento que eso por 30 seg, cancela
+)
+
+
+#===============================================
+#          Descargando los datos 
+#===============================================
+
+#===========================
+# ----- 1.  Datos diarios
+#===========================
+
+diarios <- c("DCOILWTICO","VIXCLS")             # Codigo de la FRED
+n_diarios <- c("WTI_diario", "VIX_diario ")     # Nombre de la data
+
+# ---- Dataframe vacio inicial
+datos_diarios <- NULL
+
+for(i in seq_along(diarios)) {
+  url <- paste0(
+    "https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23ebf3fb&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=1320&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=",
+    diarios[i], "&scale=left&cosd=2021-06-01&coed=2026-06-01&line_color=%230073e6&link_values=false&line_style=solid&mark_type=none&mw=3&lw=3&ost=-99999&oet=99999&mma=0&fml=a&fq=Daily&fam=avg&fgst=lin&fgsnd=2020-02-01&line_index=1&transformation=lin&vintage_date=2026-06-09&revision_date=2026-06-09&nd=1986-01-02"
+  )
+  
+  res <- curl_fetch_memory(url, handle = h)
+  df <- read.csv(text = rawToChar(res$content))
+  
+  # renombrar columna de valor
+  colnames(df)[2] <- n_diarios[i]
+  
+  # merge con la base acumulada
+  if(is.null(datos_diarios)) {
+    datos_diarios <- df
+  } else {
+    datos_diarios <- full_join(
+      datos_diarios,
+      df,
+      by = "observation_date"
+    )}}
+
+#=============================
+# ----- 1.  Datos semanales
+#=============================
+
+semanales <- c("WEI")
+n_semanales <- c("WEI")
+
+# ---- Dataframe vacio inicial
+datos_semanales <- NULL
+
+for(i in seq_along(semanales)) {
+  url <- paste0(
+ "https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23ebf3fb&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=1320&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=",
+    semanales[i], "&scale=left&cosd=2008-01-05&coed=2026-05-30&line_color=%230073e6&link_values=false&line_style=solid&mark_type=none&mw=3&lw=3&ost=-99999&oet=99999&mma=0&fml=a&fq=Weekly%2C%20Ending%20Saturday&fam=avg&fgst=lin&fgsnd=2020-02-01&line_index=1&transformation=lin&vintage_date=2026-06-09&revision_date=2026-06-09&nd=2008-01-05"
+  )
+  
+  res <- curl_fetch_memory(url, handle = h)
+  df <- read.csv(text = rawToChar(res$content))
+  
+  # renombrar columna de valor
+  colnames(df)[2] <- n_semanales[i]
+  
+  # merge con la base acumulada
+  if(is.null(datos_semanales)) {
+    datos_semanales <- df
+  } else {
+    datos_semanales <- full_join(
+      datos_semanales,
+      df,
+      by = "observation_date"
+    )}}
+
+#=============================
+# ----- 1.  Datos mensuales
+#=============================
+
+# 23 variables
+mensuales <- c("PCEC96", "PCESC96", "DGDSRX1", "CES0500000003",
+            "INDPRO", "RSXFS", "UNRATE", "CIVPART", "UNEMPLOY",
+            "JTSJOL", "PAYEMS", "CFNAI", "CPIAUCSL")
+
+
+n_mensuales <- c("PCE_actual", "PCE_servicios", "PCE_bienes", "salario_hora", "Produccion_industrial",
+             "Ventas_minoristas_nominales", "Desempleo","Tasa_participacion_laboral","Desempleados","Nuevas_vacantes",
+             "All_employees_nonfarm", "CFNAI", "CPI")
+
+
+# ---- Dataframe vacio inicial
+datos_mensuales <- NULL
+
+for(i in seq_along(mensuales)) {
+  url <- paste0(
+ "https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23ebf3fb&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=1320&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=",
+    mensuales[i], "&scale=left&cosd=1968-01-01&coed=2026-04-01&line_color=%230073e6&link_values=false&line_style=solid&mark_type=none&mw=3&lw=3&ost=-99999&oet=99999&mma=0&fml=a&fq=Monthly&fam=avg&fgst=lin&fgsnd=2020-02-01&line_index=1&transformation=lin&vintage_date=2026-06-09&revision_date=2026-06-09&nd=1968-01-01"
+  )
+  
+  res <- curl_fetch_memory(url, handle = h)
+  df <- read.csv(text = rawToChar(res$content))
+  
+  # renombrar columna de valor
+  colnames(df)[2] <- n_mensuales[i]
+  
+  # merge con la base acumulada
+  if(is.null(datos_mensuales)) {
+    datos_mensuales <- df
+  } else {
+    datos_mensuales <- full_join(
+      datos_mensuales,
+      df,
+      by = "observation_date"
+    )}}
+
+# Creando columnas con los meses y años y moviendolas a primeras columnas
+datos_mensuales <- datos_mensuales %>% mutate(year= substr(observation_date, 1, 4), Mes = substr(observation_date,6,7))
+datos_mensuales <- datos_mensuales[, c((ncol(datos_mensuales)-1):ncol(datos_mensuales), 1:(ncol(datos_mensuales)-2))]
+datos_mensuales[] <- lapply(datos_mensuales, function(x) as.numeric(as.character(x)))
+
+
+#============== Parte 2 ===============
+# 23 variables
+mensuales2 <- c("PCUOMFGOMFG", "CPILFESL", "CP0000EZ19M086NEST", "TOTNRGFOODEA20MI15XM", 
+                "CUSR0000SACL1E", "CUSR0000SASLE", "PCEPI", "PCEPILFE", "DGDSRG3M086SBEA", "DSERRG3M086SBEA")
+
+
+n_mensuales2 <- c("PPI_Manufactura", "CPI_subyacente", "Inflacion_Euro", "Inflacion_Euro_subyacente",
+             "Commodities_excl_alimentos_energia_USA", "Servicio_excl_energia_USA", "General_PCE", "Core_PCE", "PCE_bienes_Inf", "PCE_servicios_Inf")
+
+
+# ---- Dataframe vacio inicial
+datos_mensuales2 <- NULL
+
+for(i in seq_along(mensuales2)) {
+  url <- paste0(
+ "https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23ebf3fb&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=1320&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=",
+    mensuales[i], "&scale=left&cosd=1968-01-01&coed=2026-04-01&line_color=%230073e6&link_values=false&line_style=solid&mark_type=none&mw=3&lw=3&ost=-99999&oet=99999&mma=0&fml=a&fq=Monthly&fam=avg&fgst=lin&fgsnd=2020-02-01&line_index=1&transformation=lin&vintage_date=2026-06-09&revision_date=2026-06-09&nd=1968-01-01"
+  )
+  
+  res <- curl_fetch_memory(url, handle = h)
+  df <- read.csv(text = rawToChar(res$content))
+  
+  # renombrar columna de valor
+  colnames(df)[2] <- n_mensuales2[i]
+  
+  # merge con la base acumulada
+  if(is.null(datos_mensuales2)) {
+    datos_mensuales2 <- df
+  } else {
+    datos_mensuales2 <- full_join(
+      datos_mensuales2,
+      df,
+      by = "observation_date"
+    )}}
+
+# Creando columnas con los meses y años y moviendolas a primeras columnas
+datos_mensuales2 <- datos_mensuales2 %>% mutate(year= substr(observation_date, 1, 4), Mes = substr(observation_date,6,7))
+datos_mensuales2[] <- lapply(datos_mensuales2, function(x) as.numeric(as.character(x)))
+
+# Eliminando las columnas que no son necesarias
+datos_mensuales2 <- datos_mensuales2[, !(names(datos_mensuales2) %in% c("Month", "observation_date"))]
+
+datos_mensuales <- datos_mensuales %>%
+  full_join(datos_mensuales2, by = c("year", "Mes"))
+
+
+#================================
+# ----- 1.  Datos trimestrales
+#================================
+
+trimestrales <- c("GDPNOW")
+n_trimestrales <- c("GDPNOW")
+
+# ---- Dataframe vacio inicial
+datos_trimestrales <- NULL
+
+for(i in seq_along(trimestrales)) {
+  url <- paste0(
+    "https://fred.stlouisfed.org/graph/fredgraph.csv?id=",
+    trimestrales[i]
+  )
+  
+  res <- curl_fetch_memory(url, handle = h)
+  df <- read.csv(text = rawToChar(res$content))
+  
+  # renombrar columna de valor
+  colnames(df)[2] <- n_trimestrales[i]
+  
+  # merge con la base acumulada
+  if(is.null(datos_trimestrales)) {
+    datos_trimestrales <- df
+  } else {
+    datos_trimestrales <- full_join(
+      datos_trimestrales,
+      df,
+      by = "observation_date"
+    )}}
+
+
+#==============================
+#   Descargando datos de EIA
+#==============================
+
+#----------------------------
+# ======== WTI Proyectado
+#----------------------------
+
+WTI_EIA <- curl_fetch_memory("https://www.eia.gov/outlooks/steo/xls/Fig1.xlsx", handle = h)
+tmp <- tempfile(fileext = ".xlsx")
+writeBin(WTI_EIA$content, tmp)
+WTI_EIA1 <- read.xlsx(tmp)
+
+# Eliminando las columnas no utilizadas
+WTI_EIA1 <- WTI_EIA1[ c(-1, -2,-3, -89,-90), c(-1,-5,-6,-7)]
+
+# Renombrando las columnas
+names(WTI_EIA1) <- as.character(unlist(WTI_EIA1[1, ]))   # primera fila → nombres
+WTI_EIA1 <- WTI_EIA1[-1, ]                               # eliminar primera fila
+WTI_EIA1[] <- lapply(WTI_EIA1, function(x) as.numeric(as.character(x)))
+WTI_EIA1$Month <- as.Date(WTI_EIA1$Month, origin = "1899-12-30")
+WTI_EIA1$Price <- ifelse(is.na(WTI_EIA1$Price), WTI_EIA1$Forecast, WTI_EIA1$Price)
+WTI_EIA1 <- WTI_EIA1[ , -3]
+WTI_EIA1$year <-year(WTI_EIA1$Month)
+WTI_EIA1$Mes <-month(WTI_EIA1$Month)
+
+#=== Agregandolo a la base mensual
+datos_mensuales <- datos_mensuales %>%
+  full_join(WTI_EIA1, by = c("year", "Mes"))
+
+# Eliminando las columnas que no son necesarias
+datos_mensuales <- datos_mensuales[, !(names(datos_mensuales) %in% c("Month", "observation_date"))]
+
+# Renombrando las variables base mensual
+datos_mensuales <- datos_mensuales %>%
+  rename(WTI_proyectado=Price)
+
+#=======================================
+#   Descargando datos de Alimentos FAO
+#=======================================
+
+FAO_link <- curl_fetch_memory("https://www.fao.org/media/docs/worldfoodsituationlibraries/default-document-library/food_price_indices_data.csv?sfvrsn=523ebd2a_80&download=true", handle = h)
+FAO_link <- read.csv(text = rawToChar(FAO_link$content))
+ 
+# Eliminando las columnas no utilizadas
+FAO_data <- FAO_link
+names(FAO_data) <- as.character(unlist(FAO_data[2, ]))   # primera fila → nombres
+FAO_data <- FAO_data[-c(1:3), ]
+FAO_data <- FAO_data[, -c(8:ncol(FAO_data))]
+FAO_data[, 2:ncol(FAO_data)] <- lapply(FAO_data[, 2:ncol(FAO_data)],function(x) as.numeric(as.character(x)))
+FAO_data$Date <- as.Date(paste0(FAO_data$Date, "-01"))
+FAO_data$Date <- as.Date(FAO_data$Date, origin = "1899-12-30")
+
+# Agregando el año y el mes
+FAO_data <- FAO_data %>% mutate(year= year(Date), Mes = month(Date))
+FAO_data <- FAO_data[, c(2:9)]
+
+#=== Agregandolo a la base mensual
+datos_mensuales <- datos_mensuales %>%
+  full_join(FAO_data, by = c("year", "Mes"))
+
+#=======================================
+#       Indicadores Michigan
+#=======================================
+
+#======== Sentimiento del consumidor
+
+# URL del archivo
+url <- curl_fetch_memory("https://www.sca.isr.umich.edu/files/tbmics.csv", handle = h)
+sentMich <- read.csv(text = rawToChar(url$content))
+
+meses <- c("January","February","March","April","May","June",
+           "July","August","September","October","November","December")
+
+sentMich$Mes <- match(sentMich$Month, meses)
+sentMich$Month <- NULL
+sentMich <- sentMich %>%  rename(sentimiento_cons_Mich = ICS_ALL)  %>% 
+  rename(year=YYYY)
+  
+#======== Current conditions e Index of Consumer Expectations
+url <- curl_fetch_memory("https://www.sca.isr.umich.edu/files/tbmiccice.csv", handle = h)
+ICC <- read.csv(text = rawToChar(url$content))
+
+meses <- c("January","February","March","April","May","June",
+           "July","August","September","October","November","December")
+
+ICC$Mes <- match(ICC$Month, meses)
+ICC$Month <- NULL
+ICC <- ICC %>%  rename(currentConditions_Mich = ICC)  %>% 
+  rename(consumExpect_Mich = ICE)  %>% 
+  rename(year=YYYY)
+  
+#======== Expected Changes in Prices During the Next Year and the Next 5 Years
+url <- curl_fetch_memory("https://www.sca.isr.umich.edu/files/tbmpx1px5.csv", handle = h)
+prices1YMich <- read.csv(text = rawToChar(url$content))
+
+meses <- c("January","February","March","April","May","June",
+           "July","August","September","October","November","December")
+
+prices1YMich$Mes <- match(prices1YMich$Month, meses)
+prices1YMich$Month <- NULL
+prices1YMich <- prices1YMich %>%  rename(prices1YMich = PX_MD)  %>% 
+  rename(prices5YMich = PX5_MD)  %>% 
+  rename(year=YYYY)
+  
+#==== Agregando las columnas a la base mensual
+datos_mensuales <- datos_mensuales %>%
+  full_join(sentMich, by = c("year", "Mes")) %>%
+  full_join(ICC, by = c("year", "Mes")) %>%
+  full_join(prices1YMich, by = c("year", "Mes")) 
+
+#========================================
+#   Descargando datos de la OECD
+#========================================
+
+# URL del archivo
+url <- curl_fetch_memory("https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,4.1/USA+EA19+CHN.M.BCICP+LI+CCICP...AA...H?dimensionAtObservation=AllDimensions&format=csvfilewithlabels", handle = h)
+OECD <- read.csv(text = rawToChar(url$content))
+
+# ========== Confianza de los negocios =============
+EA19_Cneg <- OECD %>%
+  filter(REF_AREA == "EA19", MEASURE == "BCICP") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(EA19_Cneg = OBS_VALUE)
+EA19_Cneg[] <- lapply(EA19_Cneg, function(x) as.numeric(as.character(x)))
+
+
+CHN_Cneg <- OECD %>%
+  filter(REF_AREA == "CHN", MEASURE == "BCICP") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(CHN_Cneg = OBS_VALUE)
+CHN_Cneg[] <- lapply(CHN_Cneg, function(x) as.numeric(as.character(x)))
+
+USA_Cneg <- OECD %>%
+  filter(REF_AREA == "USA", MEASURE == "BCICP") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(USA_Cneg = OBS_VALUE)
+USA_Cneg[] <- lapply(USA_Cneg, function(x) as.numeric(as.character(x)))
+
+# ========== Confianza de los consumidores =============
+EA19_Ccons <- OECD %>%
+  filter(REF_AREA == "EA19", MEASURE == "CCICP") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(EA19_Ccons = OBS_VALUE)
+EA19_Ccons[] <- lapply(EA19_Ccons, function(x) as.numeric(as.character(x)))
+
+CHN_Ccons <- OECD %>%
+  filter(REF_AREA == "CHN", MEASURE == "CCICP") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(CHN_Ccons = OBS_VALUE)
+CHN_Ccons[] <- lapply(CHN_Ccons, function(x) as.numeric(as.character(x)))
+
+USA_Ccons <- OECD %>%
+  filter(REF_AREA == "USA", MEASURE == "CCICP") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(USA_Ccons = OBS_VALUE)
+USA_Ccons[] <- lapply(USA_Ccons, function(x) as.numeric(as.character(x)))
+
+# ========== Composite leader indicator =============
+
+CHN_CLI <- OECD %>%
+  filter(REF_AREA == "CHN", MEASURE == "LI") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(CHN_CLI = OBS_VALUE)
+CHN_CLI[] <- lapply(CHN_CLI, function(x) as.numeric(as.character(x)))
+
+USA_CLI <- OECD %>%
+  filter(REF_AREA == "USA", MEASURE == "LI") %>%
+  mutate(year= substr(TIME_PERIOD, 1, 4), Mes = substr(TIME_PERIOD,6,7)) %>%
+  dplyr::select(year, Mes, OBS_VALUE) %>%
+  rename(USA_CLI = OBS_VALUE)
+USA_CLI[] <- lapply(USA_CLI, function(x) as.numeric(as.character(x)))
+
+
+# Uniendo a la base mensual
+datos_mensuales <- datos_mensuales %>%
+  full_join(EA19_Cneg, by = c("year", "Mes")) %>%
+  full_join(CHN_Cneg, by = c("year", "Mes")) %>%
+  full_join(USA_Cneg, by = c("year", "Mes")) %>%
+  full_join(EA19_Ccons, by = c("year", "Mes"))  %>%
+  full_join(CHN_Ccons, by = c("year", "Mes")) %>%
+  full_join(USA_Ccons, by = c("year", "Mes")) %>%
+  full_join(CHN_CLI, by = c("year", "Mes")) %>%
+  full_join(USA_CLI, by = c("year", "Mes")) 
+
+
+#============================
+#   Datos de la  NY FED
+#============================
+
+#===== Expectativas de inflacion NY FED
+FED <- curl_fetch_memory("https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-data.xlsx?sc_lang=en", handle = h)
+tmp <- tempfile(fileext = ".xlsx")
+writeBin(FED$content, tmp)
+NYFED_inflation <- read.xlsx(tmp, sheet = "Inflation expectations")
+
+NYFED_inflation[2, 1] <- "fecha"   # Cambiando nombre fila 2
+NYFED_inflation <- NYFED_inflation[c(-1),]  # Elimina filas
+names(NYFED_inflation) <- as.character(unlist(NYFED_inflation[1, ]))   # primera fila → nombres
+NYFED_inflation <- NYFED_inflation[c(-1),]
+NYFED_inflation <- NYFED_inflation %>% mutate(year= substr(fecha, 1, 4), Mes = substr(fecha, nchar(fecha)-1, nchar(fecha)))
+NYFED_inflation[] <- lapply(NYFED_inflation, function(x) as.numeric(as.character(x)))
+
+#-- Agregandolo a la base mensual
+NYFED_inflation <-NYFED_inflation %>%
+  rename(NYFED_inflation_1y = `Median one-year ahead expected inflation rate`) %>%
+  rename(NYFED_inflation_3y = `Median three-year ahead expected inflation rate`) %>%
+  dplyr::select(year, Mes, NYFED_inflation_1y, NYFED_inflation_3y)
+
+datos_mensuales <- datos_mensuales %>%
+  full_join(NYFED_inflation, by = c("year", "Mes"))
+
+#==========================================
+#   Expectativas de inflacion Cleveland
+#==========================================
+
+CLEV <- curl_fetch_memory("https://www.clevelandfed.org/-/media/files/webcharts/inflationexpectations/inflation-expectations.xlsx?sc_lang=en&hash=3F94FEE8DAA429F01D7B5FE51C990D58", handle = h)
+tmp <- tempfile(fileext = ".xlsx")
+writeBin(CLEV$content, tmp)
+clev_inflation <- read.xlsx(tmp, sheet = "Expected Inflation")
+clev_inflation$Model.Output.Date <- as.Date(clev_inflation$Model.Output.Date, origin = "1899-12-30") # Cambiando formato fecha
+
+clev_inflation <-clev_inflation %>%
+  mutate(year= year(Model.Output.Date), Mes = month(Model.Output.Date)) %>%
+  rename(CLEV_inflation_1y= `xml:space="preserve">.1.year.Expected.Inflation`) %>%
+  rename(CLEV_inflation_3y= `xml:space="preserve">.3.year.Expected.Inflation`)%>%
+  dplyr::select(year, Mes, CLEV_inflation_1y, CLEV_inflation_3y)
+
+
+datos_mensuales <- datos_mensuales %>%
+  full_join(clev_inflation, by = c("year", "Mes"))
+
+
+#==========================================
+#          Ajustes finales
+#==========================================
+
+# Filtrando la data mensual que sea de el año 2000 en adelante
+datos_mensuales_final <- datos_mensuales %>%
+  mutate(fecha = as.Date(paste(year, Mes, "01", sep = "-"))) %>%
+  arrange(fecha)%>%
+  filter(year>1999)
+
+#Moviendolo a 3ra col
+datos_mensuales_final <- datos_mensuales_final[, c(1, 2, which(names(datos_mensuales_final) == "fecha"), 3:(ncol(datos_mensuales_final)-1))] 
+
+
+# Agregando variables de mes y año para cuando se grafique
+datos_mensuales_final <- datos_mensuales_final %>%
+  mutate(An = ifelse(Mes == 1, year, NA))%>%
+  mutate(M = c("Ene","Feb","Mar","Abr","May","Jun",
+               "Jul","Ago","Sep","Oct","Nov","Dic")[Mes])%>%
+  relocate(c(last_col(offset = 1), last_col()), .before = 4)
+
+# Agregando una variable de ventas minoristas reales
+datos_mensuales_final <- datos_mensuales_final %>%
+  mutate(ventas_minoristas_reales= Ventas_minoristas_nominales/CPI)
+
+# ===========================================================
+#     Calculando las variaciones interanuales de cada hoja
+# ===========================================================
+
+# Creando funcion que calcule la VI
+calc_yoy <- function(df, lag_periods) {
+  df %>%
+    transmute(
+      year  = .[[1]],
+      Mes   = .[[2]],
+      fecha = .[[3]],
+      An = .[[4]],
+      M = .[[5]],
+      across(
+        -c(1:5),   # excluye year, Mes, fecha
+        ~ (. / lag(., lag_periods) - 1) * 100,
+        .names = "{.col}_VI"
+      )
+    )
+}
+
+var_int <- calc_yoy(datos_mensuales_final, 12)
+
+
+# ========================================================
+#   Guardando un backup de la version anterior
+# ========================================================
+
+# Creando la base de datos
+anterior <- createWorkbook()
+
+# Vector para agregar una hoja al worksheet y luego agregarle la data
+for (h in c("Diario", "Semanal", "Mensual", "Trimestral", "Var. int.")) {
+  addWorksheet(anterior, h)
+  writeData(anterior, h, read_excel("Datos Actividad.xlsx", sheet = h))
+}
+
+# Guardando el backup de la versión anterior
+saveWorkbook(anterior, file.path("Backup", paste0("Datos Actividad anterior (", format(Sys.Date(), "%d%m%Y"), ").xlsx")), overwrite = TRUE)
+
+# ========================================================
+#   Base final  y exportando la base de datos a Excel
+# ========================================================
+
+# Creando la base de datos
+datos <- createWorkbook()
+
+# Creando los nombres de las hojas
+addWorksheet(datos, "Diario") 
+addWorksheet(datos, "Semanal")
+addWorksheet(datos, "Mensual")
+addWorksheet(datos, "Trimestral")
+addWorksheet(datos, "Var. int.")
+
+# Guardando cada hoja en excel
+writeData(datos, "Diario", datos_diarios) 
+writeData(datos, "Semanal", datos_semanales)
+writeData(datos, "Mensual", datos_mensuales_final)
+writeData(datos, "Trimestral", datos_trimestrales)
+writeData(datos, "Var. int.", var_int)
+
+# Base final
+saveWorkbook(datos, "Datos Actividad.xlsx", overwrite = TRUE)
+
+# ========================================================
+#       Armando la base de actividad internacional
+# ========================================================
+
+actividad_m <- datos_mensuales_final %>%  
+  dplyr::select(fecha, An, Mes, USA_Cneg, EA19_Cneg, USA_Ccons, EA19_Ccons, USA_CLI, CHN_CLI, sentimiento_cons_Mich, Desempleo, Tasa_participacion_laboral, Desempleados, Nuevas_vacantes, All_employees_nonfarm, CFNAI, ventas_minoristas_reales, Produccion_industrial) %>% 
+  mutate(Referencia=100,
+         promedio_2010_2023_sentm= mean(sentimiento_cons_Mich[fecha >= as.Date("2010-01-01") & fecha <= as.Date("2023-12-01")], na.rm = TRUE),
+         promedio_2010_2025_partc= mean(Tasa_participacion_laboral[fecha >= as.Date("2010-01-01") & fecha <= as.Date("2025-12-01")], na.rm = TRUE),
+         desempleados_vacantes= Desempleados/Nuevas_vacantes,
+         promedio_2015_2019_dnv= mean(desempleados_vacantes[fecha >= as.Date("2015-01-01") & fecha <= as.Date("2019-12-01")], na.rm = TRUE),
+         new_nonfarm= All_employees_nonfarm - lag(All_employees_nonfarm),
+         promedio_2010_2019_nnf= mean(new_nonfarm[fecha >= as.Date("2010-01-01") & fecha <= as.Date("2019-12-01")], na.rm = TRUE),
+         MA12_nnf= rollmean(new_nonfarm, k=12, align = "right", fill = NA),
+         ventas_minreales_vm= (ventas_minoristas_reales / lag(ventas_minoristas_reales, 1) - 1) * 100,
+         prod_indust_vm= (Produccion_industrial / lag(Produccion_industrial, 1) - 1) * 100,
+         prom_desempleo_1025= mean(Desempleo[fecha >= as.Date("2010-01-01") & fecha <= as.Date("2025-12-01")], na.rm = TRUE)
+         )
+
+actividad_vi <- var_int %>%  
+  dplyr::select(fecha, An, Mes, PCE_actual_VI, PCE_servicios_VI, PCE_bienes_VI, salario_hora_VI, Produccion_industrial_VI, Ventas_minoristas_nominales_VI, ventas_minoristas_reales_VI)%>%
+  mutate(salario_hora_prom_1519= mean(salario_hora_VI[fecha >= as.Date("2015-01-01") & fecha <= as.Date("2019-12-01")], na.rm = TRUE))
+
+
+actividad_internacional <- merge(actividad_m, actividad_vi, by = names(actividad_m)[1:3])
+actividad_internacional <- actividad_internacional %>%
+  dplyr::select(fecha, An, Mes, USA_Cneg, EA19_Cneg, USA_Ccons, EA19_Ccons, Referencia, USA_CLI, CHN_CLI, sentimiento_cons_Mich, promedio_2010_2023_sentm, 
+         PCE_actual_VI, PCE_servicios_VI, PCE_bienes_VI, salario_hora_VI, salario_hora_prom_1519, Produccion_industrial_VI, Ventas_minoristas_nominales_VI,
+         ventas_minoristas_reales_VI,ventas_minreales_vm, prod_indust_vm, Desempleo,  prom_desempleo_1025, Tasa_participacion_laboral, promedio_2010_2025_partc,
+         Desempleados, Nuevas_vacantes, desempleados_vacantes, promedio_2015_2019_dnv, All_employees_nonfarm, new_nonfarm, promedio_2010_2019_nnf, MA12_nnf,
+         CFNAI)
+
+
+# Exportano la base reducida
+datos <- createWorkbook()
+
+# Creando los nombres de las hojas
+addWorksheet(datos, "Diario") 
+addWorksheet(datos, "Semanal")
+addWorksheet(datos, "Mensual")
+addWorksheet(datos, "Trimestral")
+addWorksheet(datos, "Var. int.")
+
+# Guardando cada hoja en excel
+writeData(datos, "Diario", datos_diarios) 
+writeData(datos, "Semanal", datos_semanales)
+writeData(datos, "Mensual", actividad_internacional)
+writeData(datos, "Trimestral", datos_trimestrales)
+writeData(datos, "Var. int.", var_int)
+
+# Base final
+saveWorkbook(datos, "Actividad_internacional_nueva.xlsx", overwrite = TRUE)
+
+```
+
+
+
